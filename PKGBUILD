@@ -26,6 +26,9 @@
 # Contributor: Sergej Pupykin <pupykin.s+arch@gmail.com>
 # Contributor: Henrique C. Alves <hcarvalhoalves@gmail.com>
 
+_os="$( \
+  uname \
+    -o)"
 _proj="yoctoproject"
 _pkg="matchbox"
 pkgname="lib${_pkg}"
@@ -62,14 +65,29 @@ sha256sums=(
 )
 
 build() {
+  local \
+    _cflags=()
+  _cflags+=(
+    $CFLAGS
+  )
+  if [[ "${_os}" == "Android" ]]; then
+    _cflags+=(
+      -Wl,--allow-shlib-undefined
+    )
+  fi
+  export \
+    CFLAGS="${_cflags[*]}"
   cd \
     "${srcdir}/${pkgname}-${pkgver}"
+  CFLAGS="${_cflags[*]}" \
   ./autogen.sh
+  CFLAGS="${_cflags[*]}" \
   ./configure \
     --prefix=/usr \
     --enable-pango \
     --enable-jpeg \
     --enable-xsettings
+  CFLAGS="${_cflags[*]}" \
   make
 }
 
